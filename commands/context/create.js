@@ -69,24 +69,23 @@ exports.handler = async (command) => {
   }
 
   // create kubernetes cluster by zones or regions
-  if (zones.length) {
-    for (let zone of zones) {
-      const cluster = `${clusterName}-${randomstring.generate(5)}`;
 
-      if (zone.includes(',')) {
-        const childZones = zone.split(',');
+  for (let zone of zones) {
+    const cluster = `${clusterName}-${randomstring.generate(5)}`;
 
-        await exec(`gcloud container clusters create ${cluster} --cluster-version ${clusterVersion} --zone ${childZones[0]} --node-locations ${childZones.slice(1).join(',')} --machine-type ${machineType} --num-nodes ${numNodes}`, { env: { KUBECONFIG: kubeConf } });
-      } else {
-        await exec(`gcloud container clusters create ${cluster} --cluster-version ${clusterVersion} --zone ${zone} --machine-type ${machineType} --num-nodes ${numNodes}`, { env: { KUBECONFIG: kubeConf } });
-      }
+    if (zone.includes(',')) {
+      const childZones = zone.split(',');
+
+      await exec(`gcloud container clusters create ${cluster} --cluster-version ${clusterVersion} --zone ${childZones[0]} --node-locations ${childZones.slice(1).join(',')} --machine-type ${machineType} --num-nodes ${numNodes}`, { env: { KUBECONFIG: kubeConf } });
+    } else {
+      await exec(`gcloud container clusters create ${cluster} --cluster-version ${clusterVersion} --zone ${zone} --machine-type ${machineType} --num-nodes ${numNodes}`, { env: { KUBECONFIG: kubeConf } });
     }
-  } else {
-    for (let region of regions) {
-      const cluster = `${clusterName}-${randomstring.generate(5)}`;
+  }
 
-      await exec(`gcloud container clusters create ${cluster} --cluster-version ${clusterVersion} --region ${region} --machine-type ${machineType} --num-nodes ${numNodes}`, { env: { KUBECONFIG: kubeConf } });
-    }
+  for (let region of regions) {
+    const cluster = `${clusterName}-${randomstring.generate(5)}`;
+
+    await exec(`gcloud container clusters create ${cluster} --cluster-version ${clusterVersion} --region ${region} --machine-type ${machineType} --num-nodes ${numNodes}`, { env: { KUBECONFIG: kubeConf } });
   }
 
   // write current kubefctl config
