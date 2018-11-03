@@ -16,7 +16,7 @@ exports.handler = async (command) => {
     process.exit(1);
   }
 
-  const { zones = [], regions = [] } = list.splice(index, 1);
+  const { zones = [], regions = [] } = list.splice(index, 1).pop();
   const zonesOrRegions = [zones, regions];
 
   // remove sliced clusters
