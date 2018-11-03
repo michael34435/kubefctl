@@ -1,7 +1,7 @@
 const fs = require('fs-extra');
 const _ = require('lodash');
 
-exports.command = 'use-context <CLUSTER_NAME>';
+exports.command = 'use <CLUSTER_NAME>';
 exports.description = 'Use stored federation clusters.';
 exports.handler = (command) => {
   const clusterName = command.CLUSTER_NAME;

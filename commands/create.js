@@ -6,7 +6,7 @@ exports.builder = (yargs) => yargs
     const command = argv.command;
 
     if (command) {
-      return `Error: unknown command "${command}" for "kubefctl"`;
+      return `Error: unknown command "${command}" for "kubefctl clusters create"`;
     }
 
     return true;

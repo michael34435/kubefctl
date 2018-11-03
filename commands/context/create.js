@@ -3,7 +3,7 @@ const randomstring = require('randomstring');
 const fs = require('fs-extra');
 const _ = require('lodash');
 
-exports.command = 'instance <CLUSTER_NAME>';
+exports.command = 'create <CLUSTER_NAME>';
 exports.description = 'Create federation clusters on GKE.';
 exports.builder = {
   zone: {
@@ -100,6 +100,7 @@ exports.handler = async (command) => {
       clusterName,
       machineType,
       zones,
+      regions,
       clusterVersion,
       numNodes: numNodes * zones.length,
     },

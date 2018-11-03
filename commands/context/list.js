@@ -2,7 +2,7 @@ const fs = require('fs-extra');
 const _ = require('lodash');
 const Table = require('cli-table');
 
-exports.command = 'list-context';
+exports.command = 'list';
 exports.description = 'List stored federation clusters.';
 exports.handler = () => {
   const list = fs.readJsonSync(`${process.env.HOME}/.kubefctl/list`, { throws: false });
