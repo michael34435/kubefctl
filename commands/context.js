@@ -1,4 +1,4 @@
-exports.command = 'instance <command>';
+exports.command = 'context <command>';
 exports.description = 'Set context built by kubefctl';
 exports.builder = (yargs) => yargs
   .commandDir('context')
