@@ -1,12 +1,10 @@
 const { exec } = require('child_process');
 
-module.exports = (cmd, options = {}) => new Promise((resolve) => {
+module.exports = (cmd, options = {}) => new Promise((resolve, reject) => {
   const command = exec(cmd, options);
 
-  command.stdout.on('data', (data) => {
-    console.log(data.trim());
-  });
+  command.stdout.pipe(process.stdout);
 
-  command.on('error', () => {});
+  command.on('error', reject);
   command.on('exit', resolve);
 });
