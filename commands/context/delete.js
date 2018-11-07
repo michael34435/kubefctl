@@ -11,9 +11,7 @@ exports.handler = async (command) => {
   const index = _.defaultTo(list, []).indexOf(clusterName);
 
   if (index === -1) {
-    console.error(`Error: federation/clusters "${clusterName}" not found`);
-
-    process.exit(1);
+    throw new Error(`Error: federation/clusters "${clusterName}" not found`);
   }
 
   const { zones = [], regions = [] } = list.splice(index, 1).pop();

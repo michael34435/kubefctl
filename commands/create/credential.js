@@ -17,9 +17,7 @@ exports.handler = async (command) => {
   const kubeConf = `${process.env.HOME}/.kubefctl/clusters/${clusterName}`;
 
   if (fs.existsSync(kubeConf)) {
-    console.error(`Error: federation/clusters "${clusterName}" already exists`);
-
-    process.exit(1);
+    throw new Error(`Error: federation/clusters "${clusterName}" already exists`);
   }
 
   for (let cluster of clusters) {

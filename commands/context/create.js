@@ -51,21 +51,15 @@ exports.handler = async (command) => {
   const kubeConf = `${process.env.HOME}/.kubefctl/clusters/${clusterName}.yml`;
 
   if (fs.existsSync(kubeConf)) {
-    console.error(`Error: federation/clusters "${clusterName}" already exists`);
-
-    process.exit(1);
+    throw new Error(`Error: federation/clusters "${clusterName}" already exists`);
   }
 
   if ([zones, regions].every(value => value.length === 0)) {
-    console.error('Error: At most one of --region | --zone must be specified.');
-
-    process.exit(1);
+    throw new Error('Error: At most one of --region | --zone must be specified.');
   }
 
   if ([zones, regions].every(value => value.length > 0)) {
-    console.error('Error: At most one of --region | --zone may be specified.');
-
-    process.exit(1);
+    throw new Error('Error: At most one of --region | --zone may be specified.');
   }
 
   // create kubernetes cluster by zones or regions

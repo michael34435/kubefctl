@@ -11,7 +11,7 @@ exports.handler = () => {
       (value, accu) => {
         value.push(
           [
-            fs.readFileSync(`${process.env.HOME}/.kubefctl/config`).toString() === accu.clusterName ? '*' : '',
+            fs.readFileSync(`${process.env.HOME}/.kubefctl/config`).toString().trim() === accu.clusterName ? '*' : '',
             accu.clusterName,
             accu.zones.join(', '),
             accu.clusterVersion,

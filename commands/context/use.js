@@ -8,9 +8,7 @@ exports.handler = (command) => {
   const list = fs.readJsonSync(`${process.env.HOME}/.kubefctl/list`, { throws: false });
 
   if (!_.defaultTo(list, []).includes(clusterName)) {
-    console.error(`Error: federation/clusters "${clusterName}" not found`);
-
-    process.exit(1);
+    throw new Error(`Error: federation/clusters "${clusterName}" not found`);
   }
 
   fs.writeFileSync(`${process.env.HOME}/.kubefctl/config`, clusterName);
