@@ -9,7 +9,7 @@ kubefctl (Kubernetes Federation Control) is a Node.js built command tool with `k
 * kubemci
 * gcloud
 * Node.js 8+
-* Node.js packages manager you like
+* Node.js packages management tool you like
 * go 1.9+
 * git
 
