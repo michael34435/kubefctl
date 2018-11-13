@@ -14,7 +14,7 @@ exports.builder = {
 exports.handler = async (command) => {
   const clusters = command.cluster;
   const clusterName = command.CLUSTER_NAME;
-  const kubeConf = `${process.env.HOME}/.kubefctl/clusters/${clusterName}`;
+  const kubeConf = `${process.env.HOME}/.kubefctl/clusters/${clusterName}.yml`;
 
   if (fs.existsSync(kubeConf)) {
     throw new Error(`Error: federation/clusters "${clusterName}" already exists`);
@@ -24,9 +24,11 @@ exports.handler = async (command) => {
     const [name, zoneOrRegion] = cluster.split(',');
     const [geo, location, zone] = zoneOrRegion.split('-');
 
+    console.log(`${geo}-${location}-${zone}`, name, kubeConf);
     if (zone) {
       await exec(`gcloud container clusters get-credentials ${name} --zone=${geo}-${location}-${zone}`, { env: { KUBECONFIG: kubeConf } });
     } else {
+      console.log(`gcloud container clusters get-credentials ${name} --region=${geo}-${location}`);
       await exec(`gcloud container clusters get-credentials ${name} --region=${geo}-${location}`, { env: { KUBECONFIG: kubeConf } });
     }
   }

@@ -29,7 +29,7 @@ exports.handler = async (command) => {
     }
   }
 
-  fs.unlinkSync(`${process.env.HOME}/.kubefctl/${clusterName}.yml`);
+  fs.unlinkSync(`${process.env.HOME}/.kubefctl/clusters/${clusterName}.yml`);
   fs.writeJsonSync(federations, list);
 
   console.log(`federation/clusters "${clusterName}" deleted`);
