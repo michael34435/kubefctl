@@ -2,23 +2,29 @@ const fs = require('fs-extra');
 const _ = require('lodash');
 const Table = require('cli-table');
 
-exports.command = 'list';
+exports.command = 'credential';
 exports.description = 'List stored federation clusters.';
 exports.handler = () => {
-  const list = fs.readJsonSync(`${process.env.HOME}/.kubefctl/list`, { throws: false });
+  const kubeList = `${process.env.HOME}/.kubefctl/list`;
+  const kubeConf = `${process.env.HOME}/.kubefctl/config`;
+  const list = fs.readJsonSync(kubeList, { throws: false });
   const table = _.defaultTo(list, [])
     .reduce(
       (value, accu) => {
+        const current = fs.readFileSync(kubeConf, 'utf-8').trim();
+
         value.push(
           [
-            fs.readFileSync(`${process.env.HOME}/.kubefctl/config`).toString().trim() === accu.clusterName ? '*' : '',
+            current === accu.clusterName ? '*' : '',
             accu.clusterName,
-            accu.zones.join(', '),
-            accu.clusterVersion,
+            _.concat(accu.zones, accu.regions).join(', '),
             accu.machineType,
             accu.numNodes,
-          ],
+          ].map(
+            (value) => _.defaultTo(value, ''),
+          ),
         );
+
         return value;
       },
       new Table({
@@ -48,7 +54,6 @@ exports.handler = () => {
           'CURRENT',
           'NAME',
           'LOCATION',
-          'VERSION',
           'MACHINE_TYPE',
           'NUM_NODES',
         ],

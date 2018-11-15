@@ -1,5 +1,7 @@
 const exec = require('../../libs/exec');
 const fs = require('fs-extra');
+const _ = require('lodash');
+const { execSync } = require('child_process');
 
 exports.command = 'credential <CLUSTER_NAME>';
 exports.describe = 'Create federation credential from existing GKE cluster';
@@ -12,26 +14,52 @@ exports.builder = {
   },
 };
 exports.handler = async (command) => {
-  const clusters = command.cluster;
+  const inputClusters = command.cluster;
   const clusterName = command.CLUSTER_NAME;
   const kubeConf = `${process.env.HOME}/.kubefctl/clusters/${clusterName}.yml`;
+  const kubeList = `${process.env.HOME}/.kubefctl/list`;
+  const kubeCurrent = `${process.env.HOME}/.kubefctl/config`;
+  const kubeName = `${process.env.HOME}/.kubefctl/cluster-name/${clusterName}.json`;
 
   if (fs.existsSync(kubeConf)) {
     throw new Error(`Error: federation/clusters "${clusterName}" already exists`);
   }
 
-  for (let cluster of clusters) {
-    const [name, zoneOrRegion] = cluster.split(',');
-    const [geo, location, zone] = zoneOrRegion.split('-');
+  const clusterNames = { region: {}, zone: {} };
+  const cluster = { region: [], zone: [] };
+  for (let inputCluster of inputClusters) {
+    const [name, zoneOrRegion] = inputCluster.split(',');
+    const split = zoneOrRegion.split('-');
+    const [,, zone] = split;
+    const flag = zone ? 'zone' : 'region';
 
-    console.log(`${geo}-${location}-${zone}`, name, kubeConf);
-    if (zone) {
-      await exec(`gcloud container clusters get-credentials ${name} --zone=${geo}-${location}-${zone}`, { env: { KUBECONFIG: kubeConf } });
-    } else {
-      console.log(`gcloud container clusters get-credentials ${name} --region=${geo}-${location}`);
-      await exec(`gcloud container clusters get-credentials ${name} --region=${geo}-${location}`, { env: { KUBECONFIG: kubeConf } });
-    }
+    await exec(`KUBECONFIG=${kubeConf} gcloud container clusters get-credentials ${name} --${flag}=${zoneOrRegion}`);
+
+    cluster[flag].push(zoneOrRegion);
+    clusterNames[flag][zoneOrRegion] = _.defaultTo(clusterNames[flag][zoneOrRegion], []);
+    clusterNames[flag][zoneOrRegion].push(name);
   }
+
+  // write to cluster name list
+  fs.writeJsonSync(kubeName, clusterNames);
+
+  // push cluster info to list
+  const list = _.defaultTo(fs.readJsonSync(kubeList, { throws: false }), []);
+  const nodes = JSON.parse(execSync(`kubectl --kubeconfig=${kubeConf} get nodes -o json`, { encoding: 'utf-8' }));
+  const [node] = nodes.items;
+  const machineType = _.get(node, ['metadata', 'labels', 'beta.kubernetes.io/instance-type']);
+
+  list.push(
+    {
+      clusterName,
+      machineType,
+      zones: cluster.zone,
+      regions: cluster.region,
+      numNodes: nodes.items.length,
+    },
+  );
+  fs.writeJsonSync(kubeList, list);
+  fs.writeFileSync(kubeCurrent, clusterName);
 
   console.log(`federation/clusters "${clusterName}" created`);
 };

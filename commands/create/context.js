@@ -3,7 +3,7 @@ const randomstring = require('randomstring');
 const fs = require('fs-extra');
 const _ = require('lodash');
 
-exports.command = 'create <CLUSTER_NAME>';
+exports.command = 'context <CLUSTER_NAME>';
 exports.description = 'Create federation clusters on GKE.';
 exports.builder = {
   zone: {
@@ -62,28 +62,39 @@ exports.handler = async (command) => {
     throw new Error('Error: At most one of --region | --zone may be specified.');
   }
 
-  // create kubernetes cluster by zones or regions
+  // create names map
+  const clusterNames = { region: {}, zone: {} };
 
+  // create kubernetes cluster by zones or regions
   for (let zone of zones) {
     const cluster = `${clusterName}-${randomstring.generate(5)}`;
 
     if (zone.includes(',')) {
       const childZones = zone.split(',');
 
-      await exec(`gcloud container clusters create ${cluster} --cluster-version ${clusterVersion} --zone ${childZones[0]} --node-locations ${childZones.slice(1).join(',')} --machine-type ${machineType} --num-nodes ${numNodes}`, { env: { KUBECONFIG: kubeConf } });
+      await exec(`KUBECONFIG=${kubeConf} gcloud container clusters create ${cluster} --cluster-version ${clusterVersion} --zone ${childZones[0]} --node-locations ${childZones.slice(1).join(',')} --machine-type ${machineType} --num-nodes ${numNodes}`);
+
+      clusterNames.zone[childZones[0]] = _.defaultTo(clusterNames.zone[childZones[0]], []);
+      clusterNames.zone[childZones[0]].push(cluster);
     } else {
-      await exec(`gcloud container clusters create ${cluster} --cluster-version ${clusterVersion} --zone ${zone} --machine-type ${machineType} --num-nodes ${numNodes}`, { env: { KUBECONFIG: kubeConf } });
+      await exec(`KUBECONFIG=${kubeConf} gcloud container clusters create ${cluster} --cluster-version ${clusterVersion} --zone ${zone} --machine-type ${machineType} --num-nodes ${numNodes}`);
+
+      clusterNames.zone[zone] = _.defaultTo(clusterNames.zone[zone], []);
+      clusterNames.zone[zone].push(cluster);
     }
   }
 
   for (let region of regions) {
     const cluster = `${clusterName}-${randomstring.generate(5)}`;
 
-    await exec(`gcloud container clusters create ${cluster} --cluster-version ${clusterVersion} --region ${region} --machine-type ${machineType} --num-nodes ${numNodes}`, { env: { KUBECONFIG: kubeConf } });
+    await exec(`KUBECONFIG=${kubeConf} gcloud container clusters create ${cluster} --cluster-version ${clusterVersion} --region ${region} --machine-type ${machineType} --num-nodes ${numNodes}`);
+
+    clusterNames.region[region].push(cluster);
   }
 
   // write current kubefctl config
   fs.writeFileSync(`${process.env.HOME}/.kubefctl/config`, clusterName);
+  fs.writeJsonSync(`${process.env.HOME}/.kubefctl/cluster-name`, clusterNames);
 
   // write current kubefctl to list
   const listJsonFile = `${process.env.HOME}/.kubefctl/list`;
@@ -94,7 +105,6 @@ exports.handler = async (command) => {
       machineType,
       zones,
       regions,
-      clusterVersion,
       numNodes: numNodes * zones.length,
     },
   );

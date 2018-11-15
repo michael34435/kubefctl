@@ -1,13 +1,11 @@
 const fs = require('fs-extra');
-const _ = require('lodash');
 
-exports.command = 'use <CLUSTER_NAME>';
+exports.command = 'federation <CLUSTER_NAME>';
 exports.description = 'Use stored federation clusters.';
 exports.handler = (command) => {
   const clusterName = command.CLUSTER_NAME;
-  const list = fs.readJsonSync(`${process.env.HOME}/.kubefctl/list`, { throws: false });
 
-  if (!_.defaultTo(list, []).includes(clusterName)) {
+  if (!fs.existsSync(`${process.env.HOME}/.kubefctl/clusters/${clusterName}.yml`)) {
     throw new Error(`Error: federation/clusters "${clusterName}" not found`);
   }
 

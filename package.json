@@ -2,9 +2,12 @@
   "dependencies": {
     "cli-table": "^0.3.1",
     "commander": "^2.19.0",
+    "dayjs": "^1.7.7",
+    "debug": "^4.1.0",
     "fs-extra": "^7.0.0",
     "js-yaml": "^3.12.0",
     "lodash": "^4.17.11",
+    "md5": "^2.2.1",
     "randomstring": "^1.1.5",
     "which": "^1.3.1",
     "yargs": "^12.0.2"
@@ -37,7 +40,7 @@
   "bin": {
     "kubefctl": "./index.js"
   },
-  "engines" : {
-    "node" : ">=8"
+  "engines": {
+    "node": ">=8"
   }
 }
