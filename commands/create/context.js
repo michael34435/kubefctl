@@ -1,5 +1,6 @@
 const exec = require('../../libs/exec');
-const randomstring = require('randomstring');
+const md5 = require('md5');
+const dayjs = require('dayjs');
 const fs = require('fs-extra');
 const _ = require('lodash');
 
@@ -67,7 +68,7 @@ exports.handler = async (command) => {
 
   // create kubernetes cluster by zones or regions
   for (let zone of zones) {
-    const cluster = `${clusterName}-${randomstring.generate(5).toLowerCase()}`;
+    const cluster = `${clusterName}-${md5(dayjs().unix()).substr(0, 5)}`;
 
     if (zone.includes(',')) {
       const childZones = zone.split(',');
@@ -85,7 +86,7 @@ exports.handler = async (command) => {
   }
 
   for (let region of regions) {
-    const cluster = `${clusterName}-${randomstring.generate(5).toLowerCase()}`;
+    const cluster = `${clusterName}-${md5(dayjs().unix()).substr(0, 5)}`;
 
     await exec(`KUBECONFIG=${kubeConf} gcloud container clusters create ${cluster} --cluster-version ${clusterVersion} --region ${region} --machine-type ${machineType} --num-nodes ${numNodes}`);
 
