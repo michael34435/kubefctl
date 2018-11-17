@@ -176,24 +176,33 @@ const Command = require('./libs/command');
 
       // execute kubemci
       const createCommand = `kubemci create ${multiClusterIngress} --ingress=${kubeIngressConfig} --kubeconfig=${kubeConfig}`;
-      switch (argv._[0]) {
-        case 'delete':
-          break;
-        case 'apply':
-          await exec(`${createCommand} --force`);
-          break;
-        case 'create':
-          await exec(createCommand);
-          break;
+
+      const commands = {
+        delete: '',
+        apply: `${createCommand} --force`,
+        create: createCommand,
+      };
+
+      if (commands[argv._[0]]) {
+        await exec(commands[argv._[0]]);
       }
     }
 
     debug('Create deployment with kubectl here');
-    for (let clusterName of clusterNames) {
+    for (let clusterNameIndex in clusterNames) {
+      // create const
+      const clusterName = clusterNames[clusterNameIndex];
+
+      // execute command here
       console.log(`federation/clusters config "${current}" with cluster "${clusterName}"`);
 
       // execute sync kubectl command in terminal without ingress
       await exec(`kubectl --kubeconfig ${kubeConfig} --context ${clusterName} ${kubeCommand} ${deployment.length ? ` -f ${`${tmpConfig}/${current}.deployment.yml`}` : ' '}`);
+
+      // break new line here
+      if (_.toInteger(clusterNameIndex) !== (clusterNames.length - 1)) {
+        console.log('\n');
+      }
     }
   }
 })().catch((error) => {

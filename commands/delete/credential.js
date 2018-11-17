@@ -17,8 +17,10 @@ exports.handler = async (command) => {
   const clusterNames = fs.readJsonSync(kubeNamesConf, { throws: false });
   for (let type in clusterNames) {
     for (let regionOrZone in clusterNames[type]) {
-      for (let cluster in clusterNames[type][regionOrZone]) {
-        await exec(`gcloud container clusters delete ${cluster} --${type} ${regionOrZone}`);
+      for (let cluster of clusterNames[type][regionOrZone]) {
+        await exec(`gcloud container clusters delete ${cluster} --${type} ${regionOrZone}`, ['y']);
+
+        console.log('Y');
       }
     }
   }
