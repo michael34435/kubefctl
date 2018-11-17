@@ -62,7 +62,6 @@ const Command = require('./libs/command');
       const command = argv.command;
 
       if (command) {
-        console.log(command);
         throw new Error(`Error: unknown command "${command}" for "kubefctl clusters"`);
       }
 
