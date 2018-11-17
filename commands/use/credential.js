@@ -1,6 +1,6 @@
 const fs = require('fs-extra');
 
-exports.command = 'federation <CLUSTER_NAME>';
+exports.command = 'credential <CLUSTER_NAME>';
 exports.description = 'Use stored federation clusters.';
 exports.handler = (command) => {
   const clusterName = command.CLUSTER_NAME;
