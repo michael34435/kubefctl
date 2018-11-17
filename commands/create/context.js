@@ -67,7 +67,7 @@ exports.handler = async (command) => {
 
   // create kubernetes cluster by zones or regions
   for (let zone of zones) {
-    const cluster = `${clusterName}-${randomstring.generate(5)}`;
+    const cluster = `${clusterName}-${randomstring.generate(5).toLowerCase()}`;
 
     if (zone.includes(',')) {
       const childZones = zone.split(',');
@@ -85,7 +85,7 @@ exports.handler = async (command) => {
   }
 
   for (let region of regions) {
-    const cluster = `${clusterName}-${randomstring.generate(5)}`;
+    const cluster = `${clusterName}-${randomstring.generate(5).toLowerCase()}`;
 
     await exec(`KUBECONFIG=${kubeConf} gcloud container clusters create ${cluster} --cluster-version ${clusterVersion} --region ${region} --machine-type ${machineType} --num-nodes ${numNodes}`);
 
@@ -94,7 +94,7 @@ exports.handler = async (command) => {
 
   // write current kubefctl config
   fs.writeFileSync(`${process.env.HOME}/.kubefctl/config`, clusterName);
-  fs.writeJsonSync(`${process.env.HOME}/.kubefctl/cluster-name`, clusterNames);
+  fs.writeJsonSync(`${process.env.HOME}/.kubefctl/cluster-name/${clusterName}.json`, clusterNames);
 
   // write current kubefctl to list
   const listJsonFile = `${process.env.HOME}/.kubefctl/list`;
