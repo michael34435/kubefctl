@@ -2,6 +2,7 @@ const exec = require('../../libs/exec');
 const fs = require('fs-extra');
 const _ = require('lodash');
 const { execSync } = require('child_process');
+const yaml = require('js-yaml');
 
 exports.command = 'credential <CLUSTER_NAME>';
 exports.describe = 'Create federation credential from existing GKE cluster';
@@ -45,19 +46,35 @@ exports.handler = async (command) => {
 
   // push cluster info to list
   const list = _.defaultTo(fs.readJsonSync(kubeList, { throws: false }), []);
-  const nodes = JSON.parse(execSync(`kubectl --kubeconfig=${kubeConf} get nodes -o json`, { encoding: 'utf-8' }));
-  const machineType = _(nodes.items)
-    .map(node => _.get(node, ['metadata', 'labels', 'beta.kubernetes.io/instance-type']))
-    .uniq()
-    .value();
+  const yamlConf = yaml.load(fs.readFileSync(kubeConf, 'utf-8'));
+  const clusters = _(yamlConf.contexts)
+    .reduce(
+      (value, context) => {
+        const nodes = JSON.parse(execSync(`kubectl --kubeconfig=${kubeConf} --context ${_.get(context, 'context.cluster')} get nodes -o json`, { encoding: 'utf-8' }));
+
+        value.machineTypes = _(nodes.items)
+          .concat(value.machineTypes)
+          .map(node => _.get(node, ['metadata', 'labels', 'beta.kubernetes.io/instance-type']))
+          .uniq()
+          .filter(_.isString)
+          .value();
+        value.nodes += nodes.items.length;
+
+        return value;
+      },
+      {
+        nodes: 0,
+        machineTypes: [],
+      },
+    );
 
   list.push(
     {
       clusterName,
-      machineType,
+      machineTypes: clusters.machineTypes,
       zones: cluster.zone,
       regions: cluster.region,
-      numNodes: nodes.items.length,
+      numNodes: clusters.nodes,
     },
   );
   fs.writeJsonSync(kubeList, list);

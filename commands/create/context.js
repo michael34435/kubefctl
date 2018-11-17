@@ -102,7 +102,7 @@ exports.handler = async (command) => {
   list.push(
     {
       clusterName,
-      machineType: [machineType],
+      machineTypes: [machineType],
       zones,
       regions,
       numNodes: numNodes * zones.length,

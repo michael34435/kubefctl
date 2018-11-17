@@ -18,7 +18,7 @@ exports.handler = () => {
             current === accu.clusterName ? '*' : '',
             accu.clusterName,
             _.concat(accu.zones, accu.regions).join(','),
-            accu.machineType.join(','),
+            accu.machineTypes.join(','),
             accu.numNodes,
           ].map(
             (value) => _.defaultTo(value, ''),
