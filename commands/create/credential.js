@@ -46,8 +46,10 @@ exports.handler = async (command) => {
   // push cluster info to list
   const list = _.defaultTo(fs.readJsonSync(kubeList, { throws: false }), []);
   const nodes = JSON.parse(execSync(`kubectl --kubeconfig=${kubeConf} get nodes -o json`, { encoding: 'utf-8' }));
-  const [node] = nodes.items;
-  const machineType = _.get(node, ['metadata', 'labels', 'beta.kubernetes.io/instance-type']);
+  const machineType = _(nodes.items)
+    .map(node => _.get(node, ['metadata', 'labels', 'beta.kubernetes.io/instance-type']))
+    .uniq()
+    .value();
 
   list.push(
     {
