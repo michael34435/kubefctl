@@ -16,15 +16,7 @@ kubefctl (Kubernetes Federation Control) is a Node.js built command tool with `k
 ## Before installing
 Build kubemci with golang, kubemci is not a part of google-sdk at this moment.
 ```bash
-git clone https://github.com/GoogleCloudPlatform/k8s-multicluster-ingress.git
-
-cd k8s-multicluster-ingress
-
-go build -a -installsuffix cgo cmd/kubemci/kubemci.go
-
-chmod +x ./kubemci
-
-ln -s $(PWD)/kubemci /usr/local/bin/kubemci
+go get -u github.com/GoogleCloudPlatform/k8s-multicluster-ingress/cmd/kubemci
 ```
 
 ## Install via NPM
