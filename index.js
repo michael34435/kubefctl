@@ -34,7 +34,7 @@ const Command = require('./libs/command');
   debug('Check installed packages');
   const packages = [
     'kubectl',
-    // 'kubemci',
+    'kubemci',
     'gcloud',
   ];
 
@@ -101,26 +101,20 @@ const Command = require('./libs/command');
     // check is single type
     debug('Get resource type');
     if (['ingress', 'ing'].includes(_.get(args, [1], ''))) {
-      switch (args[0]) {
-        case 'get':
-        case 'delete':
-        case 'create':
-          const map = {
-            get: 'get-status',
-            delete: 'delete',
-            create: 'create',
-          };
+      const map = {
+        get: 'get-status',
+      };
 
-          if (map[args[0]] === 'get-status' && args[2] === 'all') {
-            await exec('kubemci list');
-          } else {
-            const ingressCommand = new Command(process.argv, 4);
+      if (map[args[0]] === 'get-status') {
+        if (args[2] === 'all') {
+          await exec('kubemci list');
+        } else {
+          const ingressCommand = new Command(process.argv, 4);
 
-            await exec(`kubemci ${map[args[0]]} ${_.flatten(ingressCommand.getCommands()).join(' ')}`);
-          }
-          break;
-        default:
-          throw new Error(`Error: unknown command "${args[0]}" for "kubefctl"`);
+          await exec(`kubemci ${map[args[0]]} ${_.flatten(ingressCommand.getCommands()).join(' ')}`);
+        }
+      } else {
+        throw new Error(`Error: unknown command "${args[0]}" for "kubefctl" ingress resource`);
       }
 
       process.exit(0);
@@ -167,8 +161,10 @@ const Command = require('./libs/command');
 
     debug('Create ingress with kubemci here');
     if (ingress.length) {
+      const ingresses = _.defaultTo(fs.readJsonSync(contextIngressConfig, { throws: false }), {});
+
       // create new ingress name
-      const multiClusterIngress = `${current}-multi-cluster-ingress-${md5(dayjs().unix()).substr(0, 5)}`;
+      const multiClusterIngress = _.defaultTo(ingresses[current], `${current}-multi-cluster-ingress-${md5(dayjs().unix()).substr(0, 5)}`);
 
       // show message
       console.log(`federation/clusters config "${current}" ingress "${multiClusterIngress}"`);
@@ -176,15 +172,25 @@ const Command = require('./libs/command');
       // execute kubemci
       const createCommand = `kubemci create ${multiClusterIngress} --ingress=${kubeIngressConfig} --kubeconfig=${kubeConfig}`;
 
-      const commands = {
-        delete: '',
+      // TODO: delete kubemci controller
+      const createCommands = {
         apply: `${createCommand} --force`,
         create: createCommand,
       };
 
-      if (commands[argv._[0]]) {
-        await exec(commands[argv._[0]]);
+      if (createCommands[argv._[0]]) {
+        await exec(createCommands[argv._[0]]);
+
+        ingresses[current] = multiClusterIngress;
       }
+
+      if (['delete'].includes(argv._[0])) {
+        await exec(`kubemci delete ${multiClusterIngress} --ingress=${kubeIngressConfig} --kubeconfig=${kubeConfig}`);
+
+        delete ingresses[current];
+      }
+
+      fs.writeJsonSync(contextIngressConfig, ingresses);
     }
 
     debug('Create deployment with kubectl here');
