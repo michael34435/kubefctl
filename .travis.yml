@@ -1,0 +1,10 @@
+language: node_js
+node_js:
+  - stable
+deploy:
+  provider: npm
+  email: michael34435@capslock.tw
+  api_key: $NPM_TOKEN
+  on:
+    tags: true
+    repo: michael34435/kubefctl
