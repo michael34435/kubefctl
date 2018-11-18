@@ -13,7 +13,7 @@
   },
   "name": "kubefctl",
   "description": "kubefctl (Kubernetes Federation Control) is a Node.js command tool with `kubectl` and `kubemci`, the main purpose is providing a more friendly tool to deploy multi-cluster applications on Google Kubernetes Engine.",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/michael34435/kubefctl.git"
