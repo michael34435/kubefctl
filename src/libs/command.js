@@ -1,38 +1,20 @@
 const _ = require('lodash');
+const { argv } = require('yargs');
 
-module.exports = class Command {
-  constructor (argv, slice = 2) {
-    const {
-      files = [],
-      commands = [],
-    } = _(argv)
-      .slice(slice)
-      .value()
-      .reduce(
-        (value, accu) => {
-          if (/^(-f|--file)$/.test(accu[0])) {
-            value.files.push(accu[1]);
-          } else if (_.findIndex(value, (arrayValue) => arrayValue[0] === accu[0]) === -1) {
-            value.commands.push(accu);
-          }
-
-          return value;
-        },
-        {
-          commands: [],
-          files: [],
-        },
-      );
-
-    this.commands = commands;
-    this.files = files;
-  }
-
+module.exports = {
   getCommands () {
-    return this.commands;
-  }
+    return _(argv)
+      .omit(['$0', 'f', 'file'])
+      .values()
+      .flatten()
+      .value();
+  },
 
   getFiles () {
-    return this.files;
-  }
+    return _(argv)
+      .pick(['f', 'file'])
+      .values()
+      .flatten()
+      .value();
+  },
 };

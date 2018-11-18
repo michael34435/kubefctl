@@ -10,7 +10,7 @@ const md5 = require('md5');
 const { version } = require('../package.json');
 const exec = require('../src/libs/exec');
 const debug = require('../src/libs/debug');
-const Command = require('../src/libs/command');
+const command = require('../src/libs/command');
 
 (async () => {
   debug('Create kubefctl config and directories');
@@ -109,9 +109,9 @@ const Command = require('../src/libs/command');
         if (args[2] === 'all') {
           await exec('kubemci list');
         } else {
-          const ingressCommand = new Command(process.argv, 4);
+          const ingressCommand = process.argv.slice(4).join(' ');
 
-          await exec(`kubemci ${map[args[0]]} ${_.flatten(ingressCommand.getCommands()).join(' ')}`);
+          await exec(`kubemci ${map[args[0]]} ${ingressCommand}`);
         }
       } else {
         throw new Error(`Error: unknown command "${args[0]}" for "kubefctl" ingress resource`);
@@ -122,8 +122,8 @@ const Command = require('../src/libs/command');
 
     // prepare kubefctl command
     debug('Parse kubelet config file');
-    const command = new Command(process.argv);
-    const kubeCommand = _.flatten(command.getCommands()).join(' ');
+    const kubeCommand = command.getCommands().join(' ');
+
     const kubeYaml = fs.readFileSync(kubeConfig, 'utf-8').trim();
     const { clusters } = _.defaultTo(yaml.load(kubeYaml), { clusters: [] });
     const clusterNames = _.map(clusters, 'name');
@@ -135,14 +135,23 @@ const Command = require('../src/libs/command');
     } = command
       .getFiles()
       .reduce(
-        (value, kubeFile) => {
-          if (kubeFile.kind.toLowerCase() === 'ingress') {
-            value.ingress.push(kubeFile);
-          } else {
-            value.deployment.push(kubeFile);
-          }
+        (files, kubeFile) => {
+          const kubeFileYaml = fs.readFileSync(kubeFile, 'utf-8');
+          const kubeConfigYaml = _.defaultTo(yaml.loadAll(kubeFileYaml), []);
 
-          return value;
+          return kubeConfigYaml
+            .reduce(
+              (config, kubeSubConfig) => {
+                if (kubeSubConfig.kind.toLowerCase() === 'ingress') {
+                  config.ingress.push(kubeSubConfig);
+                } else {
+                  config.deployment.push(kubeSubConfig);
+                }
+
+                return config;
+              },
+              files,
+            );
         },
         {
           ingress: [],
@@ -191,6 +200,13 @@ const Command = require('../src/libs/command');
       }
 
       fs.writeJsonSync(contextIngressConfig, ingresses);
+    }
+
+    // TODO: should exit the process, I can't find any good idea to avoid it
+    if (/^apply|create|delete/.test(kubeCommand)) {
+      if (ingress.length && !deployment.length) {
+        process.exit(0);
+      }
     }
 
     debug('Create deployment with kubectl here');
