@@ -36,7 +36,7 @@ exports.handler = async (command) => {
   const ingresses = _.defaultTo(fs.readJsonSync(kubemciIngressConf), {});
 
   if (ingresses[clusterName]) {
-    await exec(`kubemci delete ${ingresses[clusterName]} --ingress=${kubeIngressConf} --kubeconf=${kubeConf}`);
+    await exec(`kubemci delete ${ingresses[clusterName]} --ingress=${kubeIngressConf} --kubeconfig=${kubeConf}`);
 
     delete ingresses[clusterName];
     fs.writeJsonSync(kubemciIngressConf, ingresses);
