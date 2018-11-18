@@ -27,7 +27,12 @@ chmod +x ./kubemci
 ln -s $(PWD)/kubemci /usr/local/bin/kubemci
 ```
 
-## Install
+## Install via NPM
 ```bash
 npm install --global kubefctl
+```
+
+## Install via yarn
+```bash
+yarn global add kubefctl
 ```
