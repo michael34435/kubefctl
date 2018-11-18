@@ -206,7 +206,7 @@ const Command = require('./libs/command');
 
       // break new line here
       if (_.toInteger(clusterNameIndex) !== (clusterNames.length - 1)) {
-        console.log('\n');
+        console.log('');
       }
     }
   }
