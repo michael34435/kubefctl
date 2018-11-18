@@ -7,10 +7,10 @@ const _ = require('lodash');
 const yaml = require('js-yaml');
 const dayjs = require('dayjs');
 const md5 = require('md5');
-const { version } = require('./package.json');
-const exec = require('./libs/exec');
-const debug = require('./libs/debug');
-const Command = require('./libs/command');
+const { version } = require('../package.json');
+const exec = require('../src/libs/exec');
+const debug = require('../src/libs/debug');
+const Command = require('../src/libs/command');
 
 (async () => {
   debug('Create kubefctl config and directories');
@@ -55,7 +55,7 @@ const Command = require('./libs/command');
       command: 'clusters <command>',
       describe: 'kubefctl controls the Kubernetes federation(kubemci + kubectl), other commands are as same as kubectl',
       builder (yargs) {
-        return yargs.commandDir('commands');
+        return yargs.commandDir('../src/commands');
       },
     })
     .check((argv) => {
