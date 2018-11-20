@@ -168,6 +168,30 @@ const command = require('../src/libs/command');
     fs.writeFileSync(kubeDeploymentConfig, deploymentYaml);
     fs.writeFileSync(kubeIngressConfig, ingressYaml);
 
+    // TODO: should exit the process, I can't find any good idea to avoid it
+    if (/^apply|create|delete/.test(kubeCommand)) {
+      if (ingress.length && !deployment.length) {
+        process.exit(0);
+      }
+    }
+
+    debug('Create deployment with kubectl here');
+    for (let clusterNameIndex in clusterNames) {
+      // create const
+      const clusterName = clusterNames[clusterNameIndex];
+
+      // execute command here
+      console.log(`federation/clusters config "${current}" with cluster "${clusterName}"`);
+
+      // execute sync kubectl command in terminal without ingress
+      await exec(`kubectl --kubeconfig ${kubeConfig} --context ${clusterName} ${kubeCommand} ${deployment.length ? ` -f ${`${tmpConfig}/${current}.deployment.yml`}` : ' '}`);
+
+      // break new line here
+      if (_.toInteger(clusterNameIndex) !== (clusterNames.length - 1)) {
+        console.log('');
+      }
+    }
+
     debug('Create ingress with kubemci here');
     if (ingress.length) {
       const ingresses = _.defaultTo(fs.readJsonSync(contextIngressConfig, { throws: false }), {});
@@ -200,30 +224,6 @@ const command = require('../src/libs/command');
       }
 
       fs.writeJsonSync(contextIngressConfig, ingresses);
-    }
-
-    // TODO: should exit the process, I can't find any good idea to avoid it
-    if (/^apply|create|delete/.test(kubeCommand)) {
-      if (ingress.length && !deployment.length) {
-        process.exit(0);
-      }
-    }
-
-    debug('Create deployment with kubectl here');
-    for (let clusterNameIndex in clusterNames) {
-      // create const
-      const clusterName = clusterNames[clusterNameIndex];
-
-      // execute command here
-      console.log(`federation/clusters config "${current}" with cluster "${clusterName}"`);
-
-      // execute sync kubectl command in terminal without ingress
-      await exec(`kubectl --kubeconfig ${kubeConfig} --context ${clusterName} ${kubeCommand} ${deployment.length ? ` -f ${`${tmpConfig}/${current}.deployment.yml`}` : ' '}`);
-
-      // break new line here
-      if (_.toInteger(clusterNameIndex) !== (clusterNames.length - 1)) {
-        console.log('');
-      }
     }
   }
 })().catch((error) => {
